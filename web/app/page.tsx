@@ -1,7 +1,7 @@
 import ProductCard from '@/components/ProductCard'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { getAllProducts } from '@/lib/supabase'
+import { getAllProducts, Product } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -12,8 +12,8 @@ export const metadata = {
 }
 
 export default async function Home() {
-  let products = []
-  let error = null
+  let products: Product[] = []
+  let error: string | null = null
 
   try {
     products = await getAllProducts()
