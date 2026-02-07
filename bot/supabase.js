@@ -4,6 +4,21 @@ require('dotenv').config();
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || '';
 
+// Validate environment variables
+if (!supabaseUrl) {
+  console.error('❌ ERROR: SUPABASE_URL is not set');
+  console.error('Please set the SUPABASE_URL environment variable in Railway dashboard');
+  process.exit(1);
+}
+
+if (!supabaseServiceKey) {
+  console.error('❌ ERROR: SUPABASE_SERVICE_KEY is not set');
+  console.error('Please set the SUPABASE_SERVICE_KEY environment variable in Railway dashboard');
+  process.exit(1);
+}
+
+console.log('✅ Supabase URL configured:', supabaseUrl.substring(0, 30) + '...');
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**

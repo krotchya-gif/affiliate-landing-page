@@ -3,6 +3,18 @@ const { scrapeProduct, detectPlatform } = require('./scraper');
 const { saveProduct, getAllProducts, deleteProduct, getProductById } = require('./supabase');
 require('dotenv').config();
 
+// Validate required environment variables
+const BOT_TOKEN = process.env.BOT_TOKEN;
+
+if (!BOT_TOKEN) {
+  console.error('❌ ERROR: BOT_TOKEN is not set');
+  console.error('Please set the BOT_TOKEN environment variable in Railway dashboard');
+  process.exit(1);
+}
+
+console.log('✅ Bot token is configured');
+console.log('🚀 Starting bot...');
+
 // Scene untuk manual input
 const { BaseScene, Stage } = Scenes;
 
@@ -224,10 +236,52 @@ bot.catch((err, ctx) => {
   ctx.reply('❌ Terjadi kesalahan').catch(()=>{});
 });
 
-// Start
-bot.launch()
-  .then(() => console.log('🤖 Bot running'))
+// Health check endpoint untuk Railway
+const http = require('http');
+const PORT = process.env.PORT || 3000;
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    }));
+  } else {
+    res.writeHead(200);
+    res.end('Bot is running');
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`🌐 Health check server running on port ${PORT}`);
+});
+
+// Start bot
+const WEBHOOK_DOMAIN = process.env.WEBHOOK_DOMAIN;
+
+if (WEBHOOK_DOMAIN) {
+  // Production: Use webhook
+  const webhookUrl = `${WEBHOOK_DOMAIN}/webhook`;
+  console.log(`🔧 Using webhook: ${webhookUrl}`);
+  
+  bot.launch({
+    webhook: {
+      domain: WEBHOOK_DOMAIN,
+      port: PORT,
+      hookPath: '/webhook'
+    }
+  })
+  .then(() => console.log('🤖 Bot running with webhook'))
   .catch(console.error);
+} else {
+  // Development: Use polling
+  console.log('🔧 Using polling mode (development)');
+  bot.launch()
+    .then(() => console.log('🤖 Bot running with polling'))
+    .catch(console.error);
+}
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
