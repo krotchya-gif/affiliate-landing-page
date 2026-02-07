@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: affiliate-telegram-bot
+    runtime: node
+    region: singapore
+    buildCommand: cd bot && npm install
+    startCommand: cd bot && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BOT_TOKEN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: WEBHOOK_DOMAIN
+        fromService:
+          name: affiliate-telegram-bot
+          type: web
+          property: host
+    healthCheckPath: /health
